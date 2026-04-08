@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import model.resource.Resource;
 import model.review.Review;
+    // Import for JSON
+    import org.json.JSONObject;
+    import org.json.JSONArray;
 
 public class Student extends User {
 
@@ -11,6 +14,8 @@ public class Student extends User {
     private boolean suspended;
     private List<Resource> listedResources;
     private List<Review> reviews;
+
+
 
     public Student(String id, String name, String email, String phone, String password, String department) {
         super(id, name, email, phone, password);
@@ -56,5 +61,26 @@ public class Student extends User {
 
     public void addReview(Review review) {
         reviews.add(review);
+    }
+    public JSONObject toJson() {
+        JSONObject json = new JSONObject();
+        json.put("id", getId());
+        json.put("name", getName());
+        json.put("email", getEmail());
+        json.put("phone", getPhone());
+        json.put("department", getDepartment());
+        json.put("suspended", isSuspended());
+        // Optionally add listed resources and reviews as arrays
+        JSONArray resourcesArr = new JSONArray();
+        for (Resource r : listedResources) {
+            resourcesArr.put(r.toJson());
+        }
+        json.put("listedResources", resourcesArr);
+        JSONArray reviewsArr = new JSONArray();
+        for (Review rev : reviews) {
+            reviewsArr.put(rev.toJson());
+        }
+        json.put("reviews", reviewsArr);
+        return json;
     }
 }

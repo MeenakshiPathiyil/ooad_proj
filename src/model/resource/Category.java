@@ -23,4 +23,11 @@ public class Category {
     public String getSubType() {
         return subType;
     }
+    public org.json.JSONObject toJson() {
+        org.json.JSONObject json = new org.json.JSONObject();
+        json.put("categoryId", getCategoryId());
+        json.put("mainType", getMainType());
+        json.put("subType", getSubType());
+        return json;
+    }
 }

@@ -5,15 +5,13 @@ import dao.interfaces.StudentDAO;
 import model.user.Student;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class StudentDAOImpl implements StudentDAO {
 
     @Override
     public void save(Student student) {
-        String sql = "INSERT INTO Student VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Student (SRN, Name, Email, Phone, Password, Dept, Suspended) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -22,10 +20,13 @@ public class StudentDAOImpl implements StudentDAO {
             ps.setString(2, student.getName());
             ps.setString(3, student.getEmail());
             ps.setString(4, student.getPhone());
-            ps.setString(5, student.getDepartment());
-            ps.setString(6, "encrypted_password");
+            ps.setString(5, student.getPassword());  // ✅ FIXED
+            ps.setString(6, student.getDepartment());
+            ps.setBoolean(7, false); // default
 
             ps.executeUpdate();
+
+            System.out.println("✅ Student registered successfully!");
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -40,20 +41,10 @@ public class StudentDAOImpl implements StudentDAO {
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, id);
-
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                Student student = new Student(
-                        rs.getString("SRN"),
-                        rs.getString("Name"),
-                        rs.getString("Email"),
-                        rs.getString("Phone"),
-                        rs.getString("Password"),
-                        rs.getString("Dept")
-                );
-
-                return Optional.of(student);
+                return Optional.of(mapStudent(rs));
             }
 
         } catch (SQLException e) {
@@ -71,20 +62,10 @@ public class StudentDAOImpl implements StudentDAO {
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, email);
-
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                Student student = new Student(
-                        rs.getString("SRN"),
-                        rs.getString("Name"),
-                        rs.getString("Email"),
-                        rs.getString("Phone"),
-                        rs.getString("Password"),
-                        rs.getString("Dept")
-                );
-
-                return Optional.of(student);
+                return Optional.of(mapStudent(rs));
             }
 
         } catch (SQLException e) {
@@ -97,7 +78,6 @@ public class StudentDAOImpl implements StudentDAO {
     @Override
     public List<Student> findAll() {
         List<Student> students = new ArrayList<>();
-
         String sql = "SELECT * FROM Student";
 
         try (Connection conn = DBConnection.getConnection();
@@ -106,14 +86,7 @@ public class StudentDAOImpl implements StudentDAO {
             ResultSet rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
-                students.add(new Student(
-                        rs.getString("SRN"),
-                        rs.getString("Name"),
-                        rs.getString("Email"),
-                        rs.getString("Phone"),
-                        rs.getString("Password"),
-                        rs.getString("Dept")
-                ));
+                students.add(mapStudent(rs));
             }
 
         } catch (SQLException e) {
@@ -138,6 +111,8 @@ public class StudentDAOImpl implements StudentDAO {
 
             ps.executeUpdate();
 
+            System.out.println("✅ Student updated!");
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -153,8 +128,22 @@ public class StudentDAOImpl implements StudentDAO {
             ps.setString(1, id);
             ps.executeUpdate();
 
+            System.out.println("✅ Student deleted!");
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    // 🔥 Helper method (VERY IMPORTANT CLEAN CODE)
+    private Student mapStudent(ResultSet rs) throws SQLException {
+        return new Student(
+                rs.getString("SRN"),
+                rs.getString("Name"),
+                rs.getString("Email"),
+                rs.getString("Phone"),
+                rs.getString("Password"),
+                rs.getString("Dept")
+        );
     }
 }

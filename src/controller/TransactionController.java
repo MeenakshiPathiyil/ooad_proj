@@ -35,7 +35,7 @@ public class TransactionController {
     }
 
     public void completeTransaction(Transaction transaction, Resource resource) {
-        transactionService.completeTransaction(transaction, resource);
+        transactionService.completeTransaction(transaction);
         System.out.println("[INFO] Transaction completed.");
     }
 

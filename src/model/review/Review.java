@@ -26,4 +26,13 @@ public class Review {
     public String getComment() {
         return comment;
     }
+    public org.json.JSONObject toJson() {
+        org.json.JSONObject json = new org.json.JSONObject();
+        json.put("reviewId", reviewId);
+        json.put("rating", rating);
+        json.put("comment", comment);
+        json.put("reviewer", reviewer != null ? reviewer.toJson() : org.json.JSONObject.NULL);
+        json.put("resourceId", resource != null ? resource.getResourceId() : -1);
+        return json;
+    }
 }

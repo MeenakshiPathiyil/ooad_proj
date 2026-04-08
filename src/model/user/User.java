@@ -31,7 +31,9 @@ public abstract class User {
     public String getPhone() {
         return phone;
     }
-
+    public String getPassword() {
+    return password;
+}
     public abstract boolean login(String password);
 
     public abstract void logout();

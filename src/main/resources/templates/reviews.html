@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UniSync Reviews</title>
+  <link rel="stylesheet" href="/ui.css">
+  <style>
+    .review { padding: 12px; border:1px solid var(--line); border-radius: 16px; background: rgba(15,23,42,.45); }
+    .stars { font-weight: 700; letter-spacing: .5px; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>Reviews</h1>
+          <div class="muted">Submit and view reviews for a resource</div>
+        </div>
+      </div>
+
+      <div th:if="${error}" class="flash bad" th:text="${error}">Error</div>
+      <div th:if="${success}" class="flash ok" th:text="${success}">Success</div>
+
+      <div class="grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="card">
+          <h1 style="font-size:16px;">Select Resource</h1>
+          <form method="get" action="/ui/reviews">
+            <label>Resource</label>
+            <select name="resourceId" required>
+              <option value="" disabled th:selected="${resourceId == null}">Choose...</option>
+              <option th:each="r : ${resources}" th:value="${r.resourceId}" th:text="${r.title}" th:selected="${resourceId != null && resourceId == r.resourceId}">Resource</option>
+            </select>
+            <div style="margin-top:12px;">
+              <button type="submit">View Reviews</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <h1 style="font-size:16px;">Write Review</h1>
+          <form method="post" action="/ui/reviews">
+            <input type="hidden" name="resourceId" th:value="${resourceId}">
+            <label>Rating (1-5)</label>
+            <input name="rating" type="number" min="1" max="5" value="5" required>
+            <label>Comment</label>
+            <textarea name="comment" placeholder="What did you think?"></textarea>
+            <div style="margin-top:12px;">
+              <button type="submit" th:disabled="${resourceId == null}">Submit</button>
+            </div>
+            <div class="muted" style="margin-top:8px;" th:if="${resourceId == null}">Pick a resource first.</div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px;">
+        <div class="title">
+          <h1 style="font-size:16px;">Reviews</h1>
+          <span class="muted" th:text="${resourceId != null ? ('Resource ID: ' + resourceId) : 'No resource selected'}">No resource</span>
+        </div>
+
+        <div th:if="${#lists.isEmpty(reviews)}" class="muted" style="margin-top:10px;">No reviews to show.</div>
+
+        <div class="grid" style="margin-top:12px;">
+          <div class="review" th:each="rv : ${reviews}">
+            <div class="stars">Rating: <span th:text="${rv.rating}">5</span>/5</div>
+            <div class="muted" style="margin-top:6px;" th:text="${rv.comment} ?: '(no comment)'">(no comment)</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
+

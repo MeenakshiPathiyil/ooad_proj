@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<aside th:fragment="sidebar" class="sidebar">
+  <div class="brand">
+    <div class="logo">UniSync</div>
+    <div class="who" th:if="${currentUser != null}">
+      <div class="name" th:text="${currentUser.name}">Student</div>
+      <div class="meta">SRN: <span th:text="${currentUser.id}">-</span></div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <a class="navlink" href="/ui/dashboard">Dashboard</a>
+    <a class="navlink" href="/ui/profile">Profile</a>
+    <a class="navlink" href="/ui/resources">Resources</a>
+    <a class="navlink" href="/ui/sell">Sell / List</a>
+    <a class="navlink" href="/ui/buy">Buy</a>
+    <a class="navlink" href="/ui/lend-borrow">Lend / Borrow</a>
+    <a class="navlink" href="/ui/my-items">My Items</a>
+    <a class="navlink" href="/ui/transactions">Transactions</a>
+    <a class="navlink" href="/ui/reminders">Reminders</a>
+    <a class="navlink" href="/ui/reviews">Reviews</a>
+    <a class="navlink danger" href="/ui/logout">Logout</a>
+  </nav>
+
+  <div class="hint">
+    <div class="muted">API health:</div>
+    <a class="mini" href="/api/health">/api/health</a>
+  </div>
+</aside>
+</body>
+</html>

@@ -8,17 +8,27 @@ public class DBConnection {
 
     private static Connection connection;
 
-    private static final String URL = "jdbc:mysql://localhost:3306/unisync";
-    private static final String USER = "root";
-    private static final String PASSWORD = "robthebobber3090$11";
-
     private DBConnection() {
     }
 
     public static Connection getConnection() throws SQLException {
         if (connection == null || connection.isClosed()) {
-            connection = DriverManager.getConnection(URL, USER, PASSWORD);
+            String url = cfg("unisync.db.url", "UNISYNC_DB_URL", "jdbc:mysql://localhost:3306/unisync");
+            String user = cfg("unisync.db.user", "UNISYNC_DB_USER", "root");
+            String pass = cfg("unisync.db.password", "UNISYNC_DB_PASSWORD", "");
+            connection = DriverManager.getConnection(url, user, pass);
         }
         return connection;
+    }
+
+    private static String cfg(String sysPropKey, String envKey, String defaultValue) {
+        String v = System.getProperty(sysPropKey);
+        if (v == null || v.isBlank()) {
+            v = System.getenv(envKey);
+        }
+        if (v == null || v.isBlank()) {
+            v = defaultValue;
+        }
+        return v;
     }
 }

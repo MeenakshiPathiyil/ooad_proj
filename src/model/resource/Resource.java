@@ -12,6 +12,7 @@ public class Resource {
     private String condition;
     private ResourceStatus status;
     private ListingType listingType;
+    private double price;
     private Student owner;
     private Category category;
 
@@ -33,6 +34,27 @@ public class Resource {
         this.owner = owner;
         this.category = category;
         this.status = ResourceStatus.AVAILABLE;
+        this.price = 0.0;
+    }
+
+    public Resource(int resourceId,
+                    String title,
+                    String description,
+                    String condition,
+                    ListingType listingType,
+                    double price,
+                    Student owner,
+                    Category category) {
+
+        this.resourceId = resourceId;
+        this.title = title;
+        this.description = description;
+        this.condition = condition;
+        this.listingType = listingType;
+        this.owner = owner;
+        this.category = category;
+        this.status = ResourceStatus.AVAILABLE;
+        this.price = price;
     }
 
     public int getResourceId() {
@@ -85,6 +107,10 @@ public class Resource {
 public String getCondition() {
     return condition;
 }
+
+    public double getPrice() {
+        return price;
+    }
     public JSONObject toJson() {
         JSONObject json = new JSONObject();
         json.put("resourceId", getResourceId());
@@ -93,6 +119,7 @@ public String getCondition() {
         json.put("condition", getCondition());
         json.put("status", getStatus().toString());
         json.put("listingType", getListingType().toString());
+        json.put("price", getPrice());
         json.put("owner", owner != null ? owner.toJson() : JSONObject.NULL);
         json.put("category", category != null ? category.toJson() : JSONObject.NULL);
         return json;

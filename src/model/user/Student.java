@@ -5,8 +5,8 @@ import java.util.List;
 import model.resource.Resource;
 import model.review.Review;
     // Import for JSON
-    import org.json.JSONObject;
-    import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONArray;
 
 public class Student extends User {
 

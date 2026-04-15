@@ -12,16 +12,15 @@ public class ReviewDAOImpl implements ReviewDAO {
 
     @Override
     public void save(Review review) {
-        String sql = "INSERT INTO Review (ReviewId, Rating, Comment, ReviewerId, ResourceId) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Review (Rating, Comment, ReviewerId, ResourceId) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, 0); // ReviewId auto-generated
-            ps.setInt(2, review.getRating());
-            ps.setString(3, review.getComment());
-            ps.setString(4, "reviewer_id"); // Get from review object when fully implemented
-            ps.setInt(5, 0); // ResourceId - get from review object
+            ps.setInt(1, review.getRating());
+            ps.setString(2, review.getComment());
+            ps.setString(3, review.getReviewer().getId());
+            ps.setInt(4, review.getResource().getResourceId());
 
             ps.executeUpdate();
 
@@ -42,8 +41,14 @@ public class ReviewDAOImpl implements ReviewDAO {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                // Return basic review info
-                // Full implementation would reconstruct complete Review objects
+                Review r = new Review(
+                        rs.getInt("ReviewId"),
+                        rs.getInt("Rating"),
+                        rs.getString("Comment"),
+                        new model.user.Student(rs.getString("ReviewerId"), "Temp", "temp@email.com", "0000000000", "pass", "Dept"),
+                        new model.resource.Resource(rs.getInt("ResourceId"), "Temp", "", "", model.resource.ListingType.SELL, 0.0, null, null)
+                );
+                reviews.add(r);
             }
 
         } catch (SQLException e) {

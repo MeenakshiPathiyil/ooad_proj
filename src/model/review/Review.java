@@ -19,12 +19,24 @@ public class Review {
         this.resource = resource;
     }
 
+    public int getReviewId() {
+        return reviewId;
+    }
+
     public int getRating() {
         return rating;
     }
 
     public String getComment() {
         return comment;
+    }
+
+    public Student getReviewer() {
+        return reviewer;
+    }
+
+    public Resource getResource() {
+        return resource;
     }
     public org.json.JSONObject toJson() {
         org.json.JSONObject json = new org.json.JSONObject();

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UniSync Transactions</title>
+  <link rel="stylesheet" href="/ui.css">
+  <style>
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px 10px; border-bottom: 1px solid var(--line); font-size: 13px; }
+    th { color: var(--muted); font-weight: 650; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>Transactions</h1>
+          <div class="muted">Rows loaded from MySQL `Transaction` table</div>
+        </div>
+      </div>
+
+      <div th:if="${error}" class="flash bad" th:text="${error}">Error</div>
+      <div th:if="${success}" class="flash ok" th:text="${success}">Success</div>
+
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Type</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:if="${#lists.isEmpty(transactions)}">
+              <td colspan="3" class="muted">No transactions yet.</td>
+            </tr>
+            <tr th:each="t : ${transactions}">
+              <td th:text="${t.transactionId}">0</td>
+              <td th:text="${t instanceof T(model.transaction.StoredTransaction) ? t.transactionType : t.class.simpleName}">TYPE</td>
+              <td th:text="${t.status}">STATUS</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
+

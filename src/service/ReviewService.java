@@ -3,9 +3,11 @@ package service;
 import dao.interfaces.ReviewDAO;
 import dao.impl.ReviewDAOImpl;
 import model.review.Review;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public class ReviewService {
 
     private final ReviewDAO reviewDAO;

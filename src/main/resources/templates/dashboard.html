@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UniSync Dashboard</title>
+  <link rel="stylesheet" href="/ui.css">
+</head>
+<body>
+  <div class="shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>Dashboard</h1>
+          <div class="muted" th:if="${currentUser != null}">
+            Welcome, <span th:text="${currentUser.name}">Student</span>.
+          </div>
+        </div>
+        <div class="pill">MVC View (Thymeleaf)</div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h1 style="font-size:16px;">Profile</h1>
+          <div class="muted">View your details and status.</div>
+          <div style="margin-top:12px;"><a class="navlink" href="/ui/profile">Open</a></div>
+        </div>
+        <div class="card">
+          <h1 style="font-size:16px;">Resources</h1>
+          <div class="muted">Browse listings and request borrow.</div>
+          <div style="margin-top:12px;"><a class="navlink" href="/ui/resources">Open</a></div>
+        </div>
+        <div class="card">
+          <h1 style="font-size:16px;">Sell / List</h1>
+          <div class="muted">Create a new resource listing.</div>
+          <div style="margin-top:12px;"><a class="navlink" href="/ui/sell">Open</a></div>
+        </div>
+        <div class="card">
+          <h1 style="font-size:16px;">Buy</h1>
+          <div class="muted">UI placeholder for buy/sell flow.</div>
+          <div style="margin-top:12px;"><a class="navlink" href="/ui/buy">Open</a></div>
+        </div>
+        <div class="card">
+          <h1 style="font-size:16px;">Transactions</h1>
+          <div class="muted">See transaction status changes.</div>
+          <div style="margin-top:12px;"><a class="navlink" href="/ui/transactions">Open</a></div>
+        </div>
+        <div class="card">
+          <h1 style="font-size:16px;">My Items</h1>
+          <div class="muted">Return borrowed items and see purchases.</div>
+          <div style="margin-top:12px;"><a class="navlink" href="/ui/my-items">Open</a></div>
+        </div>
+        <div class="card">
+          <h1 style="font-size:16px;">Reminders</h1>
+          <div class="muted">Due-date reminders and alerts.</div>
+          <div style="margin-top:12px;"><a class="navlink" href="/ui/reminders">Open</a></div>
+        </div>
+        <div class="card">
+          <h1 style="font-size:16px;">Reviews</h1>
+          <div class="muted">Rate and review resources.</div>
+          <div style="margin-top:12px;"><a class="navlink" href="/ui/reviews">Open</a></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

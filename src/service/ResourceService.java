@@ -4,10 +4,12 @@ import dao.interfaces.ResourceDAO;
 import dao.impl.ResourceDAOImpl;
 import model.resource.Resource;
 import model.resource.ResourceStatus;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class ResourceService {
 
     private final ResourceDAO resourceDAO;
@@ -20,6 +22,10 @@ public class ResourceService {
 
         if (!resource.isAvailable()) {
             throw new IllegalArgumentException("Resource must be available before listing.");
+        }
+
+        if (resource.getListingType() == model.resource.ListingType.SELL && resource.getPrice() < 0) {
+            throw new IllegalArgumentException("Price cannot be negative.");
         }
 
         resourceDAO.save(resource);

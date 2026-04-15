@@ -8,17 +8,24 @@ import factory.TransactionFactory;
 import model.resource.Resource;
 import model.transaction.Transaction;
 import model.user.Student;
+import org.springframework.stereotype.Service;
+import dao.dto.BorrowedItem;
+import dao.dto.BoughtItem;
 
 import java.util.List;
+import java.time.LocalDate;
 
+@Service
 public class TransactionService {
 
     private final TransactionDAO transactionDAO;
     private final ResourceService resourceService;
+    private final ReminderDbService reminderDbService;
 
     public TransactionService() {
         this.transactionDAO = new TransactionDAOImpl();
         this.resourceService = new ResourceService();
+        this.reminderDbService = new ReminderDbService();
     }
 
     // 🔥 LEND / BORROW TRANSACTION
@@ -43,9 +50,78 @@ public class TransactionService {
 
         transaction.initiate();
 
-        transactionDAO.save(transaction);
+        // Persist resource status change (AVAILABLE -> BORROWED)
+        resourceService.markAsBorrowed(resource);
+
+        int txId = transactionDAO.createTransaction("LENDBORROW", transaction.getStatus().name());
+        if (txId <= 0) {
+            throw new IllegalStateException("Failed to create transaction");
+        }
+        LocalDate s = safeParseDate(startDate, LocalDate.now());
+        LocalDate e = safeParseDate(endDate, LocalDate.now().plusDays(7));
+        transactionDAO.insertLendBorrow(txId, resourceId, lenderId, borrowerId, s, e, 0.0);
+
+        // DB-backed reminder (due date - 1 day)
+        try {
+            String msg = "Return \"" + resource.getTitle() + "\" by " + e + " (Transaction #" + txId + ")";
+            reminderDbService.createReminder(borrowerId, txId, msg, e.minusDays(1));
+        } catch (Exception ignored) {
+        }
 
         return transaction;
+    }
+
+    // Minimal-change helper for UI: BUY action by ids.
+    // Note: This currently writes only the base Transaction row + updates Resource status.
+    public Transaction createBuySellTransaction(int resourceId,
+                                                String sellerId,
+                                                String buyerId,
+                                                double price) {
+
+        Resource resource = resourceService.getResourceById(resourceId);
+
+        Student seller = new Student(sellerId, "", "", "", "", "");
+        Student buyer = new Student(buyerId, "", "", "", "", "");
+
+        Transaction transaction = TransactionFactory.createTransaction(
+                "BUYSELL",
+                resource,
+                seller,
+                buyer,
+                price
+        );
+
+        transaction.initiate();
+        transaction.complete();
+
+        resourceService.markAsSold(resource);
+
+        int txId = transactionDAO.createTransaction("BUYSELL", transaction.getStatus().name());
+        if (txId <= 0) {
+            throw new IllegalStateException("Failed to create transaction");
+        }
+        transactionDAO.insertBuySell(txId, resourceId, sellerId, buyerId, price);
+        return transaction;
+    }
+
+    public List<BorrowedItem> getBorrowedItems(String borrowerId) {
+        return transactionDAO.findBorrowedByBorrower(borrowerId);
+    }
+
+    public List<BoughtItem> getBoughtItems(String buyerId) {
+        return transactionDAO.findBoughtByBuyer(buyerId);
+    }
+
+    public void returnBorrowedItem(int transactionId) {
+        transactionDAO.completeLendBorrow(transactionId);
+    }
+
+    private static LocalDate safeParseDate(String v, LocalDate fallback) {
+        try {
+            return LocalDate.parse(v);
+        } catch (Exception e) {
+            return fallback;
+        }
     }
 
     // 🔥 BUY / SELL TRANSACTION
@@ -63,8 +139,11 @@ public class TransactionService {
         );
 
         transaction.initiate();
+        transaction.complete();
 
-        transactionDAO.save(transaction);
+        resourceService.markAsSold(resource);
+        int txId = transactionDAO.createTransaction("BUYSELL", transaction.getStatus().name());
+        transactionDAO.insertBuySell(txId, resource.getResourceId(), seller.getId(), buyer.getId(), price);
 
         return transaction;
     }
@@ -89,7 +168,7 @@ public class TransactionService {
     public void completeLendBorrowTransaction(int transactionId) {
 
         try {
-            transactionDAO.updateStatus(transactionId, "COMPLETED");
+            transactionDAO.completeLendBorrow(transactionId);
         } catch (Exception ignored) {
             // fallback if DAO method not present
         }

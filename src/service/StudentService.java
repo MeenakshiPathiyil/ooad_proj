@@ -3,10 +3,12 @@ package service;
 import dao.interfaces.StudentDAO;
 import dao.impl.StudentDAOImpl;
 import model.user.Student;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class StudentService {
 
     private final StudentDAO studentDAO;

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UniSync Buy</title>
+  <link rel="stylesheet" href="/ui.css">
+</head>
+<body>
+  <div class="shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>Buy</h1>
+          <div class="muted"><span th:text="${count}">0</span> items for sale</div>
+        </div>
+      </div>
+
+      <div th:if="${error}" class="flash bad" th:text="${error}">Error</div>
+      <div th:if="${success}" class="flash ok" th:text="${success}">Success</div>
+
+      <div class="grid">
+        <div class="card" th:each="r : ${resources}">
+          <div class="title">
+            <h1 th:text="${r.title}" style="font-size:16px; margin:0;">Title</h1>
+            <span class="pill">ID: <span th:text="${r.resourceId}">0</span></span>
+          </div>
+          <div class="muted" style="margin-top:8px;" th:text="${r.description} ?: 'No description provided.'">Description</div>
+          <div class="row" style="margin-top:10px;">
+            <span class="pill">Status: <span th:text="${r.status}">AVAILABLE</span></span>
+            <span class="pill">Type: <span th:text="${r.listingType}">SELL</span></span>
+            <span class="pill">Condition: <span th:text="${r.condition}">Good</span></span>
+          </div>
+
+          <form method="post" action="/ui/buy" style="margin-top:12px;">
+            <input type="hidden" name="resourceId" th:value="${r.resourceId}">
+            <div class="row">
+              <div>
+                <label>Price (fixed)</label>
+                <input type="text" th:value="${r.price}" readonly>
+              </div>
+              <div style="display:flex; align-items:flex-end;">
+                <button type="submit" style="width:100%;">Buy</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UniSync Profile</title>
+  <link rel="stylesheet" href="/ui.css">
+</head>
+<body>
+  <div class="shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>Profile</h1>
+          <div class="muted">Your account details</div>
+        </div>
+      </div>
+
+      <div class="card" th:if="${student != null}">
+        <div class="row">
+          <div>
+            <label>SRN</label>
+            <input th:value="${student.id}" readonly>
+          </div>
+          <div>
+            <label>Name</label>
+            <input th:value="${student.name}" readonly>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Email</label>
+            <input th:value="${student.email}" readonly>
+          </div>
+          <div>
+            <label>Phone</label>
+            <input th:value="${student.phone}" readonly>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Department</label>
+            <input th:value="${student.department}" readonly>
+          </div>
+          <div>
+            <label>Suspended</label>
+            <input th:value="${student.suspended}" readonly>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" th:if="${student == null}">
+        <div class="muted">No user in session.</div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
+

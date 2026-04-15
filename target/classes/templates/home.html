@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UniSync</title>
+  <link rel="stylesheet" href="/ui.css">
+</head>
+<body>
+  <div class="main" style="max-width: 1040px; margin: 0 auto;">
+    <div class="topbar">
+      <div>
+        <div class="pill">Spring Boot MVC + MySQL</div>
+        <h1 style="margin-top:10px;">UniSync</h1>
+        <div class="muted">Student resource hub for buy, sell, lend/borrow, reminders, and reviews.</div>
+      </div>
+      <div class="muted" style="text-align:right;">
+        <div><a href="/api/health">API Health</a></div>
+        <div><a href="/resources">Resources (JSON)</a></div>
+      </div>
+    </div>
+
+    <div th:if="${error}" class="flash bad" th:text="${error}">Error</div>
+    <div th:if="${success}" class="flash ok" th:text="${success}">Success</div>
+
+    <div class="grid" style="grid-template-columns: 1.05fr .95fr;">
+      <div class="card">
+        <div class="title">
+          <h1>Login</h1>
+          <span class="pill">Existing student</span>
+        </div>
+        <form method="post" action="/ui/login">
+          <label>Email</label>
+          <input name="email" type="email" placeholder="name@college.edu" required>
+          <label>Password</label>
+          <input name="password" type="password" placeholder="••••••••" required>
+          <div style="margin-top:12px;">
+            <button type="submit">Login</button>
+          </div>
+        </form>
+        <div class="muted" style="margin-top:12px; font-size:12px;">
+          After login you’ll land on the dashboard with a sidebar for Profile, Buy, Sell, Lend/Borrow, My Items, Reminders, and Reviews.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="title">
+          <h1>Signup</h1>
+          <span class="pill">New student</span>
+        </div>
+        <form method="post" action="/ui/signup">
+          <div class="row">
+            <div>
+              <label>SRN</label>
+              <input name="id" placeholder="PES1UG..." required>
+            </div>
+            <div>
+              <label>Name</label>
+              <input name="name" placeholder="Your name" required>
+            </div>
+          </div>
+          <label>Email</label>
+          <input name="email" type="email" placeholder="name@college.edu" required>
+          <div class="row">
+            <div>
+              <label>Phone</label>
+              <input name="phone" placeholder="9999999999" required>
+            </div>
+            <div>
+              <label>Department</label>
+              <input name="dept" placeholder="CSE" required>
+            </div>
+          </div>
+          <label>Password</label>
+          <input name="password" type="password" placeholder="Create a password" required>
+          <div style="margin-top:12px;">
+            <button type="submit">Create Account</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

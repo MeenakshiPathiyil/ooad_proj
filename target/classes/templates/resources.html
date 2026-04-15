@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UniSync Resources</title>
+  <link rel="stylesheet" href="/ui.css">
+</head>
+<body>
+  <div class="shell" th:with="today=${T(java.time.LocalDate).now()}, week=${T(java.time.LocalDate).now().plusDays(7)}">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>Resources</h1>
+          <div class="muted"><span th:text="${count}">0</span> available listings</div>
+        </div>
+        <div class="row" style="max-width: 420px;">
+          <a class="pill" href="/ui/sell" style="text-decoration:none;">+ List Resource</a>
+          <a class="pill" href="/resources" style="text-decoration:none;">View JSON</a>
+        </div>
+      </div>
+
+      <div th:if="${param.error}" class="flash bad" th:text="${param.error[0]}">Error</div>
+      <div th:if="${param.success}" class="flash ok" th:text="${param.success[0]}">Success</div>
+
+      <div class="grid">
+        <div class="card" th:each="r : ${resources}">
+          <div class="title">
+            <h1 th:text="${r.title}" style="font-size:16px; margin:0;">Title</h1>
+            <span class="pill">ID: <span th:text="${r.resourceId}">0</span></span>
+          </div>
+          <div class="muted" style="margin-top:8px;" th:text="${r.description} ?: 'No description provided.'">Description</div>
+          <div class="row" style="margin-top:10px;">
+            <span class="pill">Status: <span th:text="${r.status}">AVAILABLE</span></span>
+            <span class="pill">Type: <span th:text="${r.listingType}">SELL</span></span>
+            <span class="pill">Condition: <span th:text="${r.condition}">Good</span></span>
+            <span class="pill" th:if="${r.listingType.name() == 'SELL'}">Price: <span th:text="${r.price}">0</span></span>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <a class="pill" th:href="@{/ui/reviews(resourceId=${r.resourceId})}" style="text-decoration:none;">Reviews</a>
+          </div>
+
+          <!-- Lend/Borrow action -->
+          <form th:if="${r.listingType.name() == 'LEND'}" method="post" action="/ui/borrow" style="margin-top:12px;">
+            <input type="hidden" name="resourceId" th:value="${r.resourceId}">
+            <input type="hidden" name="lenderId" th:value="${r.owner != null ? r.owner.id : ''}">
+            <div class="row">
+              <div>
+                <label>Start</label>
+                <input type="date" name="startDate" th:value="${today}" required>
+              </div>
+              <div>
+                <label>End</label>
+                <input type="date" name="endDate" th:value="${week}" required>
+              </div>
+            </div>
+            <div style="margin-top:10px;">
+              <button type="submit">Borrow</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

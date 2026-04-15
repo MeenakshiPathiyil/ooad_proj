@@ -10,21 +10,31 @@ import java.util.*;
 
 public class ResourceDAOImpl implements ResourceDAO {
 
+    private static Boolean hasPriceColumnCache;
+
     @Override
     public void save(Resource resource) {
 
-        String sql = "INSERT INTO Resource (Title, Description, ItemCondition, Status, ListingType, OwnerId, CategoryId) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sqlWithPrice = "INSERT INTO Resource (Title, Description, ItemCondition, Status, ListingType, Price, OwnerId, CategoryId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sqlNoPrice = "INSERT INTO Resource (Title, Description, ItemCondition, Status, ListingType, OwnerId, CategoryId) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(hasPriceColumn(conn) ? sqlWithPrice : sqlNoPrice)) {
 
             ps.setString(1, resource.getTitle());
             ps.setString(2, resource.getDescription());
             ps.setString(3, resource.getCondition());
             ps.setString(4, resource.getStatus().name());
             ps.setString(5, resource.getListingType().name());
-            ps.setString(6, resource.getOwner().getId());
-            ps.setInt(7, resource.getCategory().getCategoryId());
+
+            if (hasPriceColumn(conn)) {
+                ps.setDouble(6, resource.getPrice());
+                ps.setString(7, resource.getOwner().getId());
+                ps.setInt(8, resource.getCategory().getCategoryId());
+            } else {
+                ps.setString(6, resource.getOwner().getId());
+                ps.setInt(7, resource.getCategory().getCategoryId());
+            }
 
             ps.executeUpdate();
 
@@ -83,15 +93,21 @@ public class ResourceDAOImpl implements ResourceDAO {
     @Override
     public void update(Resource resource) {
 
-        String sql = "UPDATE Resource SET Title=?, Description=?, Status=? WHERE ResourceId=?";
+        String sqlWithPrice = "UPDATE Resource SET Title=?, Description=?, Status=?, Price=? WHERE ResourceId=?";
+        String sqlNoPrice = "UPDATE Resource SET Title=?, Description=?, Status=? WHERE ResourceId=?";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(hasPriceColumn(conn) ? sqlWithPrice : sqlNoPrice)) {
 
             ps.setString(1, resource.getTitle());
             ps.setString(2, resource.getDescription()); // ✅ FIXED
             ps.setString(3, resource.getStatus().name());
-            ps.setInt(4, resource.getResourceId());
+            if (hasPriceColumn(conn)) {
+                ps.setDouble(4, resource.getPrice());
+                ps.setInt(5, resource.getResourceId());
+            } else {
+                ps.setInt(4, resource.getResourceId());
+            }
 
             ps.executeUpdate();
 
@@ -135,14 +151,35 @@ public class ResourceDAOImpl implements ResourceDAO {
     "Temp"
 );
 
+        double price = 0.0;
+        try {
+            price = rs.getDouble("Price");
+        } catch (SQLException ignored) {
+            // Older schema may not have Price column.
+        }
+
         return new Resource(
                 rs.getInt("ResourceId"),
                 rs.getString("Title"),
                 rs.getString("Description"),
                 rs.getString("ItemCondition"),
                 ListingType.valueOf(rs.getString("ListingType")),
+                price,
                 owner,
                 category
         );
+    }
+
+    private boolean hasPriceColumn(Connection conn) {
+        if (hasPriceColumnCache != null) return hasPriceColumnCache;
+        try {
+            DatabaseMetaData md = conn.getMetaData();
+            try (ResultSet cols = md.getColumns(conn.getCatalog(), null, "Resource", "Price")) {
+                hasPriceColumnCache = cols.next();
+            }
+        } catch (SQLException e) {
+            hasPriceColumnCache = false;
+        }
+        return hasPriceColumnCache;
     }
 }

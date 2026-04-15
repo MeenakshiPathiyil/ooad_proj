@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UniSync Reminders</title>
+  <link rel="stylesheet" href="/ui.css">
+  <style>
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px 10px; border-bottom: 1px solid var(--line); font-size: 13px; vertical-align: top; }
+    th { color: var(--muted); font-weight: 650; }
+    .badge { display:inline-block; padding:4px 10px; border-radius:999px; border:1px solid var(--line); color: var(--muted); font-size: 12px; }
+    .badge.unread{border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.08); color: #bbf7d0;}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>Reminders</h1>
+          <div class="muted">Database-backed reminders (due dates, alerts)</div>
+        </div>
+      </div>
+
+      <div th:if="${error}" class="flash bad" th:text="${error}">Error</div>
+      <div th:if="${success}" class="flash ok" th:text="${success}">Success</div>
+
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Date</th>
+              <th>Message</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:if="${#lists.isEmpty(reminders)}">
+              <td colspan="5" class="muted">No reminders yet.</td>
+            </tr>
+            <tr th:each="r : ${reminders}">
+              <td th:text="${r.reminderId}">0</td>
+              <td th:text="${r.reminderDate}">-</td>
+              <td th:text="${r.message}">-</td>
+              <td>
+                <span class="badge" th:classappend="${r.status == 'UNREAD'} ? ' unread' : ''" th:text="${r.status}">UNREAD</span>
+              </td>
+              <td>
+                <form th:if="${r.status == 'UNREAD'}" method="post" action="/ui/reminders/read">
+                  <input type="hidden" name="reminderId" th:value="${r.reminderId}">
+                  <button type="submit">Mark Read</button>
+                </form>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
+

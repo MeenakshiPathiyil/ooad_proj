@@ -15,7 +15,7 @@ public class DBConnection {
         if (connection == null || connection.isClosed()) {
             String url = cfg("unisync.db.url", "UNISYNC_DB_URL", "jdbc:mysql://localhost:3306/unisync");
             String user = cfg("unisync.db.user", "UNISYNC_DB_USER", "root");
-            String pass = cfg("unisync.db.password", "UNISYNC_DB_PASSWORD", "");
+            String pass = cfg("unisync.db.password", "UNISYNC_DB_PASSWORD", "root@123");
             connection = DriverManager.getConnection(url, user, pass);
         }
         return connection;

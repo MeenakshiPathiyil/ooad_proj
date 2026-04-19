@@ -4,9 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 import model.resource.Resource;
 import model.review.Review;
-    // Import for JSON
 import org.json.JSONObject;
 import org.json.JSONArray;
+
+// Encapsulates all student-specific properties and behaviors, supporting SRP and polymorphism
+// Why this design: 
+// 1. There is a clean separation - student models data, service enforces rules
+// 2. Student controls its own state
+// 3. Easy to understand as all student-related logic is in the student class
+// 4. Easy to extend as new features can be added with minimal changes
 
 public class Student extends User {
 
@@ -18,14 +24,19 @@ public class Student extends User {
 
 
     public Student(String id, String name, String email, String phone, String password, String department) {
+
+        // Call the parent constructor to initialize common user properties
         super(id, name, email, phone, password);
+
+        // Initialize student-specific properties
         this.department = department;
         this.suspended = false;
-        this.listedResources = new ArrayList<>();
-        this.reviews = new ArrayList<>();
+        this.listedResources = new ArrayList<>(); // Start with no resources
+        this.reviews = new ArrayList<>(); // Start with no reviews
     }
 
     @Override
+    // Validates login using the student's own state, following GRASP Information Expert.
     public boolean login(String password) {
         return !suspended && this.password.equals(password);
     }
@@ -35,10 +46,12 @@ public class Student extends User {
         System.out.println("Student logged out successfully.");
     }
 
+    // Suspends the student inside the entity, keeping status logic cohesive.
     public void suspend() {
         suspended = true;
     }
 
+    // Reactivates the student inside the model, which again follows Information Expert.
     public void activate() {
         suspended = false;
     }
@@ -51,6 +64,7 @@ public class Student extends User {
         return department;
     }
 
+    // Records a listed resource for this student, supporting high cohesion in the entity.
     public void addResource(Resource resource) {
         listedResources.add(resource);
     }
@@ -59,9 +73,11 @@ public class Student extends User {
         return listedResources;
     }
 
+    // Attaches a review to the student who owns it, keeping related data together.
     public void addReview(Review review) {
         reviews.add(review);
     }
+    // Converts the student into JSON for API transport and UI integration.
     public JSONObject toJson() {
         JSONObject json = new JSONObject();
         json.put("id", getId());

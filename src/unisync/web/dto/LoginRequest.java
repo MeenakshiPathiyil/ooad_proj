@@ -3,6 +3,7 @@ package unisync.web.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
+// LoginRequest carries validated login input, keeping transport data separate from domain models.
 public class LoginRequest {
     @NotBlank
     @Email
@@ -27,4 +28,3 @@ public class LoginRequest {
         this.password = password;
     }
 }
-

@@ -8,9 +8,11 @@ import org.json.JSONObject;
 
 import java.io.*;
 
+// ResourceHandler is a legacy HTTP endpoint that maps JSON requests to resource actions, following GRASP Controller.
 public class ResourceHandler implements HttpHandler {
 
     @Override
+    // Reads an add-resource request and delegates business logic to the service layer.
     public void handle(HttpExchange exchange) throws IOException {
 
         if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) return;
@@ -47,6 +49,7 @@ public class ResourceHandler implements HttpHandler {
         send(exchange, 200, response);
     }
 
+    // Sends a JSON response back to the client, keeping HTTP output formatting in one place.
     private void send(HttpExchange ex, int code, JSONObject res) throws IOException {
         ex.getResponseHeaders().add("Content-Type", "application/json");
         byte[] bytes = res.toString().getBytes();

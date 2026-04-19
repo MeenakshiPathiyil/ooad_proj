@@ -7,9 +7,11 @@ import model.user.Student;
 import java.sql.*;
 import java.util.*;
 
+// StudentDAOImpl manages JDBC operations for students, supporting SRP and low coupling.
 public class StudentDAOImpl implements StudentDAO {
 
     @Override
+    // Saves a new student record while hiding SQL details from the service layer.
     public void save(Student student) {
         String sql = "INSERT INTO Student (SRN, Name, Email, Phone, Password, Dept, Suspended) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
@@ -20,13 +22,13 @@ public class StudentDAOImpl implements StudentDAO {
             ps.setString(2, student.getName());
             ps.setString(3, student.getEmail());
             ps.setString(4, student.getPhone());
-            ps.setString(5, student.getPassword());  // ✅ FIXED
+            ps.setString(5, student.getPassword());  
             ps.setString(6, student.getDepartment());
             ps.setBoolean(7, false); // default
 
             ps.executeUpdate();
 
-            System.out.println("✅ Student registered successfully!");
+            System.out.println("Student registered successfully!");
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -34,6 +36,7 @@ public class StudentDAOImpl implements StudentDAO {
     }
 
     @Override
+    // Finds a student by id to support authentication and profile use cases.
     public Optional<Student> findById(String id) {
         String sql = "SELECT * FROM Student WHERE SRN = ?";
 
@@ -55,6 +58,7 @@ public class StudentDAOImpl implements StudentDAO {
     }
 
     @Override
+    // Finds a student by email so login and duplicate checks stay outside SQL code.
     public Optional<Student> findByEmail(String email) {
         String sql = "SELECT * FROM Student WHERE Email = ?";
 
@@ -76,6 +80,7 @@ public class StudentDAOImpl implements StudentDAO {
     }
 
     @Override
+    // Returns all students for admin and reporting use cases.
     public List<Student> findAll() {
         List<Student> students = new ArrayList<>();
         String sql = "SELECT * FROM Student";
@@ -97,6 +102,7 @@ public class StudentDAOImpl implements StudentDAO {
     }
 
     @Override
+    // Updates student data after business rules are applied in the service layer.
     public void update(Student student) {
         String sql = "UPDATE Student SET Name=?, Email=?, Phone=?, Dept=? WHERE SRN=?";
 
@@ -111,7 +117,7 @@ public class StudentDAOImpl implements StudentDAO {
 
             ps.executeUpdate();
 
-            System.out.println("✅ Student updated!");
+            System.out.println("Student updated!");
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -119,6 +125,7 @@ public class StudentDAOImpl implements StudentDAO {
     }
 
     @Override
+    // Deletes a student record while preserving separation between business and persistence logic.
     public void delete(String id) {
         String sql = "DELETE FROM Student WHERE SRN=?";
 
@@ -128,14 +135,14 @@ public class StudentDAOImpl implements StudentDAO {
             ps.setString(1, id);
             ps.executeUpdate();
 
-            System.out.println("✅ Student deleted!");
+            System.out.println("Student deleted!");
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    // 🔥 Helper method (VERY IMPORTANT CLEAN CODE)
+    // Builds a Student object from a database row, centralizing mapping responsibility.
     private Student mapStudent(ResultSet rs) throws SQLException {
         return new Student(
                 rs.getString("SRN"),

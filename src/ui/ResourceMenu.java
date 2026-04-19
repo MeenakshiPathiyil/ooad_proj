@@ -6,6 +6,7 @@ import model.user.Student;
 
 import java.util.Scanner;
 
+// ResourceMenu provides a CLI view for resource use cases, following SRP and separation of concerns.
 public class ResourceMenu {
 
     private final Scanner scanner;
@@ -18,6 +19,7 @@ public class ResourceMenu {
         this.student = student;
     }
 
+    // Displays the legacy resource options and routes user input to the proper controller action.
     public void show() {
 
         while (true) {
@@ -55,6 +57,7 @@ public class ResourceMenu {
         }
     }
 
+    // Collects console input and creates a Resource object for the controller, keeping UI concerns local.
     private void addResource() {
 
         System.out.print("Title: ");
@@ -78,6 +81,7 @@ public class ResourceMenu {
         resourceController.addResource(resource);
     }
 
+    // Prints available resources for the CLI without embedding business logic in the menu.
     private void viewResources() {
         resourceController.getAvailableResources()
                 .forEach(r -> System.out.println(r.getTitle()));

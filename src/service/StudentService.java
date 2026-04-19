@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+// StudentService manages registration and login rules, following SRP and Service Layer.
 public class StudentService {
 
     private final StudentDAO studentDAO;
@@ -17,6 +18,7 @@ public class StudentService {
         this.studentDAO = new StudentDAOImpl();
     }
 
+    // Prevents duplicate registrations before saving, keeping validation out of the UI layer.
     public void registerStudent(Student student) {
 
         Optional<Student> existing = studentDAO.findByEmail(student.getEmail());
@@ -28,6 +30,7 @@ public class StudentService {
         studentDAO.save(student);
     }
 
+    // Authenticates a student by coordinating lookup and password checks, following low coupling.
     public Student login(String email, String password) {
 
         Optional<Student> studentOptional = studentDAO.findByEmail(email);
@@ -45,14 +48,17 @@ public class StudentService {
         return student;
     }
 
+    // Returns all students for admin views while centralizing use-case logic in one class.
     public List<Student> getAllStudents() {
         return studentDAO.findAll();
     }
 
+    // Sends student updates through the service layer to preserve separation of concerns.
     public void updateStudent(Student student) {
         studentDAO.update(student);
     }
 
+    // Deletes a student through the DAO while keeping controllers free of persistence logic.
     public void removeStudent(String studentId) {
         studentDAO.delete(studentId);
     }

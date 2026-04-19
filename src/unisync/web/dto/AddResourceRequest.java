@@ -3,6 +3,7 @@ package unisync.web.dto;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 
+// AddResourceRequest captures validated web input for new resources, supporting MVC boundary separation.
 public class AddResourceRequest {
     @NotBlank
     private String title;

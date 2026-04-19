@@ -7,6 +7,7 @@ import model.user.Student;
 
 import java.util.Scanner;
 
+// AdminMenu provides the legacy CLI for admin operations, following SRP for presentation logic.
 public class AdminMenu {
 
     private final Scanner scanner;
@@ -20,6 +21,7 @@ public class AdminMenu {
         studentController = new StudentController();
     }
 
+    // Displays admin options after login and routes actions to the appropriate controllers.
     public void show() {
         loginAdmin();
 
@@ -65,6 +67,7 @@ public class AdminMenu {
         }
     }
 
+    // Performs simple demo-style admin authentication for the CLI flow.
     private void loginAdmin() {
         System.out.print("Admin Email: ");
         String email = scanner.nextLine();
@@ -81,6 +84,7 @@ public class AdminMenu {
         }
     }
 
+    // Lists all students for the admin without exposing service logic directly to the console layer.
     private void viewAllStudents() {
         System.out.println("\n===== All Students =====");
         java.util.List<Student> students = studentController.getAllStudents();
@@ -95,6 +99,7 @@ public class AdminMenu {
         }
     }
 
+    // Finds a student by email and delegates suspension through the controller stack.
     private void suspendStudent() {
         System.out.print("Enter Student Email: ");
         String email = scanner.nextLine();
@@ -111,6 +116,7 @@ public class AdminMenu {
         System.out.println("[ERROR] Student not found.");
     }
 
+    // Finds a student by email and delegates reactivation through the controller stack.
     private void activateStudent() {
         System.out.print("Enter Student Email: ");
         String email = scanner.nextLine();
@@ -127,6 +133,7 @@ public class AdminMenu {
         System.out.println("[ERROR] Student not found.");
     }
 
+    // Prints high-level demo statistics for the admin CLI.
     private void viewStatistics() {
         System.out.println("\n===== System Statistics =====");
         System.out.println("Total Registered Students: " + studentController.getAllStudents().size());

@@ -7,9 +7,11 @@ import org.json.JSONObject;
 
 import java.io.*;
 
+// SignupHandler is the legacy HTTP signup endpoint, following GRASP Controller for request handling.
 public class SignupHandler implements HttpHandler {
 
     @Override
+    // Reads signup data, creates a Student, and delegates registration to the service layer.
     public void handle(HttpExchange exchange) throws IOException {
 
         if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
@@ -51,6 +53,7 @@ public class SignupHandler implements HttpHandler {
         }
     }
 
+    // Writes a JSON response so signup output handling stays in one helper method.
     private void send(HttpExchange ex, int code, JSONObject res) throws IOException {
         ex.getResponseHeaders().add("Content-Type", "application/json");
         byte[] bytes = res.toString().getBytes();

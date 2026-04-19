@@ -7,9 +7,11 @@ import org.json.JSONObject;
 
 import java.io.*;
 
+// LoginHandler implements the legacy login endpoint, following GRASP Controller and separation of concerns.
 public class LoginHandler implements HttpHandler {
 
     @Override
+    // Reads login credentials and delegates authentication to StudentService.
     public void handle(HttpExchange exchange) throws IOException {
 
         if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
@@ -46,6 +48,7 @@ public class LoginHandler implements HttpHandler {
         }
     }
 
+    // Sends a JSON login response while keeping protocol formatting separate from business logic.
     private void send(HttpExchange ex, int code, JSONObject res) throws IOException {
         ex.getResponseHeaders().add("Content-Type", "application/json");
         byte[] bytes = res.toString().getBytes();

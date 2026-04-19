@@ -8,9 +8,11 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+// ReviewDAOImpl encapsulates JDBC review queries, following SRP and Pure Fabrication.
 public class ReviewDAOImpl implements ReviewDAO {
 
     @Override
+    // Stores a review in the database so higher layers do not manage SQL directly.
     public void save(Review review) {
         String sql = "INSERT INTO Review (Rating, Comment, ReviewerId, ResourceId) VALUES (?, ?, ?, ?)";
 
@@ -30,6 +32,7 @@ public class ReviewDAOImpl implements ReviewDAO {
     }
 
     @Override
+    // Retrieves all reviews for one resource, keeping query logic inside the DAO layer.
     public List<Review> findByResource(int resourceId) {
         List<Review> reviews = new ArrayList<>();
         String sql = "SELECT ReviewId, Rating, Comment, ReviewerId, ResourceId FROM Review WHERE ResourceId = ?";

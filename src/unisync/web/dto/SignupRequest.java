@@ -3,6 +3,7 @@ package unisync.web.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
+// SignupRequest carries validated registration input, which supports SRP at the web boundary.
 public class SignupRequest {
     @NotBlank
     private String id;
@@ -71,4 +72,3 @@ public class SignupRequest {
         this.dept = dept;
     }
 }
-

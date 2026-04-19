@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Controller
+// UiReviewController handles web review requests, following MVC and the GRASP Controller principle.
 public class UiReviewController {
 
     private final ReviewService reviewService;
@@ -29,6 +30,7 @@ public class UiReviewController {
     }
 
     @GetMapping("/ui/reviews")
+    // Loads the reviews page and supplies model data for the selected resource.
     public String reviews(@RequestParam(value = "resourceId", required = false) Integer resourceId,
                           @RequestParam(value = "error", required = false) String error,
                           @RequestParam(value = "success", required = false) String success,
@@ -51,6 +53,7 @@ public class UiReviewController {
     }
 
     @PostMapping("/ui/reviews")
+    // Accepts a submitted review and delegates validation and saving to ReviewService.
     public String submit(@RequestParam int resourceId,
                          @RequestParam int rating,
                          @RequestParam(required = false) String comment,
@@ -71,14 +74,15 @@ public class UiReviewController {
         }
     }
 
+    // Extracts the logged-in student from the session, keeping session access centralized.
     private static Student current(HttpSession session) {
         Object u = session.getAttribute(UiSession.CURRENT_USER);
         if (u instanceof Student s) return s;
         throw new IllegalStateException("Not logged in");
     }
 
+    // Encodes messages safely for redirect URLs, keeping utility logic local to the controller.
     private static String enc(String s) {
         return URLEncoder.encode(s, StandardCharsets.UTF_8);
     }
 }
-

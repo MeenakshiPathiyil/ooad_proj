@@ -5,6 +5,7 @@ import model.user.Student;
 
 import java.util.Scanner;
 
+// StudentMenu manages CLI registration and login screens, following SRP for user interaction.
 public class StudentMenu {
 
     private final Scanner scanner;
@@ -15,6 +16,7 @@ public class StudentMenu {
         studentController = new StudentController();
     }
 
+    // Displays student portal actions and routes user choices without embedding business logic.
     public void show() {
 
         while (true) {
@@ -45,6 +47,7 @@ public class StudentMenu {
         }
     }
 
+    // Collects signup data from the console and sends it to the student controller.
     private void registerStudent() {
 
         System.out.print("SRN: ");
@@ -70,6 +73,7 @@ public class StudentMenu {
         studentController.registerStudent(student);
     }
 
+    // Collects login data and hands authentication over to the controller and service layers.
     private void loginStudent() {
 
         System.out.print("Email: ");

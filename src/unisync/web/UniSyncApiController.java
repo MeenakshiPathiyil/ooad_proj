@@ -1,9 +1,11 @@
 package unisync.web;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import model.resource.Category;
 import model.resource.ListingType;
 import model.resource.Resource;
+import model.resource.ResourceBuilder;
 import model.transaction.Transaction;
 import model.user.Student;
 import org.springframework.http.HttpStatus;
@@ -13,6 +15,7 @@ import service.ResourceService;
 import service.StudentService;
 import service.TransactionService;
 import unisync.web.dto.*;
+import unisync.web.ui.UiSession;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -84,21 +87,26 @@ public class UniSyncApiController {
     }
 
     @PostMapping("/addResource")
-    public ResponseEntity<?> addResource(@Valid @RequestBody AddResourceRequest req) {
-        double price = req.getPrice() != null ? req.getPrice() : 0.0;
-        Resource resource = new Resource(
-                0,
-                req.getTitle(),
-                req.getDescription(),
-                req.getCondition(),
-                ListingType.valueOf(req.getType()),
-                price,
-                new Student(req.getOwnerId(), "", "", "", "", ""),
-                new Category(req.getCategoryId(), "", "")
-        );
+    public ResponseEntity<?> addResource(@Valid @RequestBody AddResourceRequest req, HttpSession session) {
+        Student currentUser = (Student) session.getAttribute(UiSession.CURRENT_USER);
+        
+        // ✅ BUILDER PATTERN: Use ResourceBuilder for clear, validated resource creation
+        try {
+            Resource resource = new ResourceBuilder()
+                    .title(req.getTitle())
+                    .description(req.getDescription())
+                    .condition(req.getCondition())
+                    .listingType(ListingType.valueOf(req.getType()))
+                    .price(req.getPrice() != null ? req.getPrice() : 0.0)
+                    .owner(currentUser)
+                    .category(new Category(req.getCategoryId(), "", ""))
+                    .build();  // ← Validates all fields before creating
 
-        resourceService.addResource(resource);
-        return ResponseEntity.ok(ApiResponse.success());
+            resourceService.addResource(resource);
+            return ResponseEntity.ok(ApiResponse.success());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
+        }
     }
 
     @PostMapping("/borrow")

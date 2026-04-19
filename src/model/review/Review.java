@@ -3,6 +3,7 @@ package model.review;
 import model.resource.Resource;
 import model.user.Student;
 
+// Review keeps feedback data in one place, following SRP for the review domain.
 public class Review {
 
     private int reviewId;
@@ -38,6 +39,7 @@ public class Review {
     public Resource getResource() {
         return resource;
     }
+    // Converts a review into JSON for API responses, supporting clean communication with the web layer.
     public org.json.JSONObject toJson() {
         org.json.JSONObject json = new org.json.JSONObject();
         json.put("reviewId", reviewId);

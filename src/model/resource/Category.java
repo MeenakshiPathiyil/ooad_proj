@@ -1,5 +1,8 @@
 package model.resource;
 
+// this is used for resource classification. It follows encapsulation and information expert. 
+// Encapsulation because the fields are private and can only be accessed through getters
+// Information expert because the category owns category values so it converts itself to json 
 public class Category {
 
     private int categoryId;

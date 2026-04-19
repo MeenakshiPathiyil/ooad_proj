@@ -13,6 +13,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 @Controller
+// UiMyItemsController serves the personal items page, following MVC and GRASP Controller.
 public class UiMyItemsController {
 
     private final TransactionService transactionService;
@@ -22,6 +23,7 @@ public class UiMyItemsController {
     }
 
     @GetMapping("/ui/my-items")
+    // Loads borrowed and bought item data into the view model for the current user.
     public String myItems(@RequestParam(value = "error", required = false) String error,
                           @RequestParam(value = "success", required = false) String success,
                           HttpSession session,
@@ -35,6 +37,7 @@ public class UiMyItemsController {
     }
 
     @PostMapping("/ui/return")
+    // Handles a return request and delegates the business action to TransactionService.
     public String returnItem(@RequestParam int transactionId, HttpSession session) {
         Student me = current(session);
         try {
@@ -45,14 +48,15 @@ public class UiMyItemsController {
         }
     }
 
+    // Reads the logged-in student from the session so view handlers stay consistent.
     private static Student current(HttpSession session) {
         Object u = session.getAttribute(UiSession.CURRENT_USER);
         if (u instanceof Student s) return s;
         throw new IllegalStateException("Not logged in");
     }
 
+    // Encodes redirect messages safely for the web layer.
     private static String enc(String s) {
         return URLEncoder.encode(s, StandardCharsets.UTF_8);
     }
 }
-

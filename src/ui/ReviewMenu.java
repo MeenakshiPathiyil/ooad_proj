@@ -6,6 +6,7 @@ import model.user.Student;
 
 import java.util.Scanner;
 
+// ReviewMenu is the CLI screen for review actions, supporting SRP by isolating console interaction.
 public class ReviewMenu {
 
     private final Scanner scanner;
@@ -23,6 +24,7 @@ public class ReviewMenu {
         this.reviewer = reviewer;
     }
 
+    // Displays review options and delegates actual work to the review controller.
     public void show() {
 
         while (true) {
@@ -53,6 +55,7 @@ public class ReviewMenu {
         }
     }
 
+    // Collects review input and forwards it for validation and persistence through the controller layer.
     private void submitReview() {
         System.out.println("\n===== Submit Review =====");
 
@@ -82,6 +85,7 @@ public class ReviewMenu {
         reviewController.submitReview(review);
     }
 
+    // Shows reviews for a chosen resource while leaving retrieval logic to the service stack.
     private void viewResourceReviews() {
         System.out.println("\n===== View Reviews =====");
 

@@ -38,7 +38,7 @@ public class UiSellController {
                              @RequestParam(required = false) String description,
                              @RequestParam String condition,
                              @RequestParam String type,
-                             @RequestParam(required = false) Double price,
+                             @RequestParam(required = false) String price,
                              @RequestParam int categoryId,
                              HttpSession session) {
 
@@ -51,8 +51,9 @@ public class UiSellController {
         try {
             double fixedPrice = 0.0;
             if ("SELL".equalsIgnoreCase(type)) {
-                fixedPrice = price != null ? price : 0.0;
+                fixedPrice = parseSellPrice(price);
             }
+            
             Resource resource = new Resource(
                     0,
                     title,
@@ -65,8 +66,25 @@ public class UiSellController {
             );
             resourceService.addResource(resource);
             return "redirect:/ui/resources?success=" + enc("Resource listed");
+        } catch (IllegalArgumentException e) {
+            return "redirect:/ui/sell?error=" + enc(e.getMessage());
         } catch (Exception e) {
             return "redirect:/ui/sell?error=" + enc(e.getMessage() == null ? "Failed to list resource" : e.getMessage());
+        }
+    }
+
+    private double parseSellPrice(String price) throws IllegalArgumentException {
+        if (price == null || price.trim().isEmpty()) {
+            throw new IllegalArgumentException("Price is required for SELL listings");
+        }
+        try {
+            double parsedPrice = Double.parseDouble(price.trim());
+            if (parsedPrice <= 0) {
+                throw new IllegalArgumentException("Price must be greater than 0");
+            }
+            return parsedPrice;
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid price format: " + price);
         }
     }
 

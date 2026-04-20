@@ -57,6 +57,12 @@ public class UiBuyController {
 
         try {
             Resource r = resourceService.getResourceById(resourceId);
+            
+            // 🔥 Validate price before purchase
+            if (r.getPrice() <= 0) {
+                return "redirect:/ui/buy?error=" + enc("Invalid resource price. Contact seller.");
+            }
+            
             String sellerId = r.getOwner() != null ? r.getOwner().getId() : "";
             double price = r.getPrice();
             transactionService.createBuySellTransaction(resourceId, sellerId, buyer.getId(), price);

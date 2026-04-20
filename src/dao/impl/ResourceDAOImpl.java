@@ -156,11 +156,7 @@ public class ResourceDAOImpl implements ResourceDAO {
             "Temp"
         );
 
-        double price = 0.0;
-        try {
-            price = rs.getDouble("Price");
-        } catch (SQLException ignored) {
-        }
+        double price = rs.getDouble("Price");
 
         return new Resource(
                 rs.getInt("ResourceId"),

@@ -595,6 +595,11 @@ def page_upload_item(action_type):
     cat_map   = {f"{c['MainType']} / {c['SubType']}": c['CategoryId'] for c in categories}
     cat_names = list(cat_map.keys())
 
+    # Initialize variables before form (so they're accessible after submit)
+    price = 0.0
+    lend_note = ""
+    barter_pref = ""
+
     with st.form(f"upload_{action_type}_form"):
         col_img, col_det = st.columns([1, 2])
 
@@ -634,11 +639,20 @@ def page_upload_item(action_type):
 
             try:
                 cursor = conn.cursor()
-                cursor.execute(
-                    "INSERT INTO Resource (Title, Description, ItemCondition, Status, ListingType, OwnerId, CategoryId) "
-                    "VALUES (%s, %s, %s, 'AVAILABLE', %s, %s, %s)",
-                    (title, description, condition, listing_type, user_srn, cat_id)
-                )
+                # Include price for SELL listings
+                if action_type == 'sell':
+                    print(f"DEBUG: Inserting SELL resource - Price: {price}, Title: {title}")
+                    cursor.execute(
+                        "INSERT INTO Resource (Title, Description, ItemCondition, Status, ListingType, Price, OwnerId, CategoryId) "
+                        "VALUES (%s, %s, %s, 'AVAILABLE', %s, %s, %s, %s)",
+                        (title, description, condition, listing_type, price, user_srn, cat_id)
+                    )
+                else:
+                    cursor.execute(
+                        "INSERT INTO Resource (Title, Description, ItemCondition, Status, ListingType, OwnerId, CategoryId) "
+                        "VALUES (%s, %s, %s, 'AVAILABLE', %s, %s, %s)",
+                        (title, description, condition, listing_type, user_srn, cat_id)
+                    )
                 conn.commit()
                 st.success(f"'{title}' listed successfully!")
                 navigate_to('home')
@@ -666,7 +680,7 @@ def page_buysell():
         extra_where = f"AND r.ResourceId = {int(target)}" if target else ""
 
         query = f"""
-            SELECT r.ResourceId, r.Title, r.Description, r.ItemCondition,
+            SELECT r.ResourceId, r.Title, r.Description, r.ItemCondition, r.Price,
                    s.Name AS SellerName, s.SRN AS SellerSRN
             FROM Resource r
             JOIN Student s ON r.OwnerId = s.SRN
@@ -687,11 +701,15 @@ def page_buysell():
 
             with st.form("buysell_form"):
                 resource_id = st.selectbox("Select Resource ID", df['ResourceId'].unique())
-                price       = st.number_input("Agreed Price (₹)", min_value=1.0, format="%.2f")
+                # Display seller's price as read-only information
+                selected_row = df[df['ResourceId'] == resource_id].iloc[0]
+                print(f"DEBUG: Selected Resource - {selected_row.to_dict()}")
+                st.info(f"**Seller's Asking Price:** ₹{selected_row['Price']:.2f}")
                 submitted   = st.form_submit_button("Confirm Purchase", type="primary")
 
                 if submitted:
                     row = df[df['ResourceId'] == resource_id].iloc[0]
+                    seller_price = row['Price']  # Use seller's actual asking price
                     conn2 = get_db_connection()
                     if conn2:
                         try:
@@ -701,11 +719,11 @@ def page_buysell():
                                 "INSERT INTO Transaction (TransactionType, Status) VALUES ('BUYSELL', 'PENDING')"
                             )
                             txn_id = cursor.lastrowid
-                            # Insert BuySellTransaction detail
+                            # Insert BuySellTransaction detail with seller's actual price
                             cursor.execute(
                                 "INSERT INTO BuySellTransaction (TransactionId, ResourceId, SellerId, BuyerId, Price) "
                                 "VALUES (%s, %s, %s, %s, %s)",
-                                (txn_id, resource_id, row['SellerSRN'], user_srn, price)
+                                (txn_id, resource_id, row['SellerSRN'], user_srn, seller_price)
                             )
                             # Mark resource as unavailable (reserved)
                             cursor.execute(

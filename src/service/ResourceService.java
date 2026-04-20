@@ -3,7 +3,6 @@ package service;
 import dao.interfaces.ResourceDAO;
 import dao.impl.ResourceDAOImpl;
 import model.resource.Resource;
-import model.resource.ResourceStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,8 +25,9 @@ public class ResourceService {
             throw new IllegalArgumentException("Resource must be available before listing.");
         }
 
-        if (resource.getListingType() == model.resource.ListingType.SELL && resource.getPrice() < 0) {
-            throw new IllegalArgumentException("Price cannot be negative.");
+        // 🔥 SELL listings MUST have a price > 0
+        if (resource.getListingType() == model.resource.ListingType.SELL && resource.getPrice() <= 0) {
+            throw new IllegalArgumentException("SELL listings must have a price greater than 0. Price provided: " + resource.getPrice());
         }
 
         resourceDAO.save(resource);

@@ -258,27 +258,41 @@ def page_login():
                 st.warning("Please fill in both fields.")
                 return
 
-            # 🔥 ADMIN (keep DB or skip for now)
-            if role == "Admin":
-                st.warning("Admin login not yet moved to API.")
-                return
-
-            # 🔥 STUDENT LOGIN → API CALL
             try:
                 res = requests.post(
                     "http://localhost:8080/login",
                     json={
-                        "email": login_id,   # your backend expects email
+                        "email": login_id,  
                         "password": login_pwd
                     }
                 )
 
                 if res.status_code == 200:
                     data = res.json()
-                    st.session_state.logged_in_srn = data["srn"]
+                    # Handle both admin and student logins
+                    if data.get("role") == "admin":
+                        st.session_state.logged_in_srn = f"ADMIN::{data['id']}"
+                    else:
+                        st.session_state.logged_in_srn = data["srn"]
                     navigate_to('home')
                 else:
-                    st.error("Invalid credentials")
+                    # Extract the error message from the response
+                    try:
+                        error_data = res.json()
+                        error_message = error_data.get("message", "Invalid credentials")
+                        
+                        # 🔥 DEBUG: Print the exact error message
+                        print(f"DEBUG - Full error_data: {error_data}")
+                        print(f"DEBUG - error_message value: '{error_message}'")
+                        print(f"DEBUG - Does it contain 'suspended'? {'suspended' in error_message.lower()}")
+                        
+                        # CHECK FOR SUSPENSION
+                        if "suspended" in error_message.lower():
+                            st.error(f"🚫 {error_message}")
+                        else:
+                            st.error(error_message)
+                    except:
+                        st.error("Invalid credentials")
 
             except Exception as e:
                 st.error(f"API Error: {e}")

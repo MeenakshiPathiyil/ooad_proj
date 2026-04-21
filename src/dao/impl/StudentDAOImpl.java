@@ -150,7 +150,8 @@ public class StudentDAOImpl implements StudentDAO {
                 rs.getString("Email"),
                 rs.getString("Phone"),
                 rs.getString("Password"),
-                rs.getString("Dept")
+                rs.getString("Dept"),
+                rs.getBoolean("Suspended")
         );
     }
 }

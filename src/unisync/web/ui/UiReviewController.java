@@ -37,6 +37,7 @@ public class UiReviewController {
                           HttpSession session,
                           Model model) {
         current(session);
+        // Prepare data for view
         List<Resource> resources = resourceService.getAvailableResources();
         model.addAttribute("resources", resources);
         model.addAttribute("resourceId", resourceId);
@@ -44,6 +45,7 @@ public class UiReviewController {
         model.addAttribute("success", success);
 
         if (resourceId != null) {
+            // If resource selected, show its reviews
             model.addAttribute("reviews", reviewService.getReviewsForResource(resourceId));
         } else {
             model.addAttribute("reviews", List.of());
@@ -58,8 +60,9 @@ public class UiReviewController {
                          @RequestParam int rating,
                          @RequestParam(required = false) String comment,
                          HttpSession session) {
-        Student me = current(session);
+        Student me = current(session);  // Get current user from session
         try {
+            // Create a review object
             Review r = new Review(
                     0,
                     rating,
@@ -67,7 +70,7 @@ public class UiReviewController {
                     me,
                     new Resource(resourceId, "Temp", "", "", ListingType.SELL, 0.0, null, null)
             );
-            reviewService.submitReview(r);
+            reviewService.submitReview(r);  // Call service to save the review
             return "redirect:/ui/reviews?resourceId=" + resourceId + "&success=" + enc("Review submitted");
         } catch (Exception e) {
             return "redirect:/ui/reviews?resourceId=" + resourceId + "&error=" + enc(e.getMessage() == null ? "Review failed" : e.getMessage());
@@ -81,7 +84,7 @@ public class UiReviewController {
         throw new IllegalStateException("Not logged in");
     }
 
-    // Encodes messages safely for redirect URLs, keeping utility logic local to the controller.
+    // Encodes messages safely for redirect URLs.
     private static String enc(String s) {
         return URLEncoder.encode(s, StandardCharsets.UTF_8);
     }

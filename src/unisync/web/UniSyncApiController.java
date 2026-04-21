@@ -8,11 +8,13 @@ import model.resource.Resource;
 import model.resource.ResourceBuilder;
 import model.transaction.Transaction;
 import model.user.Student;
+import model.user.Admin;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import service.ResourceService;
 import service.StudentService;
+import service.AdminService;
 import service.TransactionService;
 import unisync.web.dto.*;
 import unisync.web.ui.UiSession;
@@ -28,13 +30,16 @@ public class UniSyncApiController {
     private final StudentService studentService;
     private final ResourceService resourceService;
     private final TransactionService transactionService;
+    private final AdminService adminService;
 
     public UniSyncApiController(StudentService studentService,
                                 ResourceService resourceService,
-                                TransactionService transactionService) {
+                                TransactionService transactionService,
+                                AdminService adminService) {
         this.studentService = studentService;
         this.resourceService = resourceService;
         this.transactionService = transactionService;
+        this.adminService = adminService;
     }
 
     @GetMapping("/api/health")
@@ -45,14 +50,35 @@ public class UniSyncApiController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest req) {
         try {
+            // Try admin login first
+            try {
+                Admin admin = adminService.login(req.getEmail(), req.getPassword());
+                Map<String, Object> res = ApiResponse.success();
+                res.put("role", "admin");
+                res.put("id", admin.getId());
+                res.put("name", admin.getName());
+                res.put("email", admin.getEmail());
+                return ResponseEntity.ok(res);
+            } catch (Exception adminLoginFailed) {
+                // Admin login failed, try student login
+            }
+
+            // Try student login
             Student s = studentService.login(req.getEmail(), req.getPassword());
 
             Map<String, Object> res = ApiResponse.success();
+            res.put("role", "student");
             res.put("srn", s.getId());
             res.put("name", s.getName());
+            res.put("email", s.getEmail());
             return ResponseEntity.ok(res);
         } catch (IllegalArgumentException e) {
-            // Keep compatibility with your old HttpServer handler behavior
+            System.out.println("DEBUG - Login Error: " + e.getMessage());
+            // Check if the error is due to suspension
+            if (e.getMessage() != null && e.getMessage().contains("suspended")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.fail("Your account has been suspended"));
+            }
+            // Otherwise it's invalid credentials
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.fail("Invalid credentials"));
         }
     }

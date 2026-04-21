@@ -44,16 +44,16 @@ public class UiAuthController {
                         @RequestParam String password,
                         HttpSession session) {
         try {
-            Student student = studentService.login(email, password);
-            session.setAttribute(UiSession.CURRENT_USER, student);
-            return "redirect:/ui/dashboard";
+            Student student = studentService.login(email, password);    // Call service to authenticate user
+            session.setAttribute(UiSession.CURRENT_USER, student);  // Store in session for later requests
+            return "redirect:/ui/dashboard";    // Redirect to dashboard
         } catch (Exception e) {
-            return "redirect:/?error=" + enc("Invalid credentials");
+            return "redirect:/?error=" + enc("Invalid credentials");    // If authentication fails, redirect with error
         }
     }
 
     @PostMapping("/ui/signup")
-    // Registers a new student and starts a session, keeping UI logic separate from business logic.
+    // Registers a new student and starts a session
     public String signup(@RequestParam String id,
                          @RequestParam String name,
                          @RequestParam String email,
@@ -62,10 +62,10 @@ public class UiAuthController {
                          @RequestParam String dept,
                          HttpSession session) {
         try {
-            Student student = new Student(id, name, email, phone, password, dept);
-            studentService.registerStudent(student);
+            Student student = new Student(id, name, email, phone, password, dept);  // Create student object from form data
+            studentService.registerStudent(student);    // Call service to register
             // Auto-login after signup
-            session.setAttribute(UiSession.CURRENT_USER, student);
+            session.setAttribute(UiSession.CURRENT_USER, student);  // Auto-login after signup
             return "redirect:/ui/dashboard";
         } catch (Exception e) {
             return "redirect:/?error=" + enc("Signup failed: " + safeMsg(e));

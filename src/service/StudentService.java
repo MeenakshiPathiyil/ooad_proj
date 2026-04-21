@@ -45,12 +45,28 @@ public class StudentService {
             throw new IllegalArgumentException("Invalid password.");
         }
 
+        // Check if student is suspended
+        if (student.isSuspended()) {
+            throw new IllegalArgumentException("Your account has been suspended. Please contact the administrator.");
+        }
+
         return student;
     }
 
     // Returns all students for admin views while centralizing use-case logic in one class.
     public List<Student> getAllStudents() {
         return studentDAO.findAll();
+    }
+
+    // Retrieves a student by ID for operations like checking suspension status.
+    public Student getStudentById(String studentId) {
+        Optional<Student> studentOptional = studentDAO.findById(studentId);
+
+        if (studentOptional.isEmpty()) {
+            throw new IllegalArgumentException("Student not found.");
+        }
+
+        return studentOptional.get();
     }
 
     // Sends student updates through the service layer to preserve separation of concerns.

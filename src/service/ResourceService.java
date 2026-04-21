@@ -25,6 +25,11 @@ public class ResourceService {
             throw new IllegalArgumentException("Resource must be available before listing.");
         }
 
+        // Check if owner is suspended - suspended students cannot list resources
+        if (resource.getOwner() != null && resource.getOwner().isSuspended()) {
+            throw new IllegalStateException("Suspended accounts cannot list resources.");
+        }
+
         // 🔥 SELL listings MUST have a price > 0
         if (resource.getListingType() == model.resource.ListingType.SELL && resource.getPrice() <= 0) {
             throw new IllegalArgumentException("SELL listings must have a price greater than 0. Price provided: " + resource.getPrice());

@@ -2,7 +2,9 @@ package api;
 
 import com.sun.net.httpserver.*;
 import service.StudentService;
+import service.AdminService;
 import model.user.Student;
+import model.user.Admin;
 import org.json.JSONObject;
 
 import java.io.*;
@@ -11,7 +13,7 @@ import java.io.*;
 public class LoginHandler implements HttpHandler {
 
     @Override
-    // Reads login credentials and delegates authentication to StudentService.
+    // Reads login credentials and delegates authentication to StudentService or AdminService.
     public void handle(HttpExchange exchange) throws IOException {
 
         if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
@@ -29,20 +31,45 @@ public class LoginHandler implements HttpHandler {
             String email = json.getString("email");
             String password = json.getString("password");
 
-            StudentService service = new StudentService();
-            Student s = service.login(email, password);
+            // Try admin login first
+            AdminService adminService = new AdminService();
+            try {
+                Admin admin = adminService.login(email, password);
+                JSONObject response = new JSONObject();
+                response.put("status", "success");
+                response.put("role", "admin");
+                response.put("id", admin.getId());
+                response.put("name", admin.getName());
+                response.put("email", admin.getEmail());
+                send(exchange, 200, response);
+                return;
+            } catch (Exception adminLoginFailed) {
+                // Admin login failed, try student login
+            }
+
+            // Try student login
+            StudentService studentService = new StudentService();
+            Student student = studentService.login(email, password);
 
             JSONObject response = new JSONObject();
             response.put("status", "success");
-            response.put("srn", s.getId());
-            response.put("name", s.getName());
+            response.put("role", "student");
+            response.put("srn", student.getId());
+            response.put("name", student.getName());
+            response.put("email", student.getEmail());
 
             send(exchange, 200, response);
 
         } catch (Exception e) {
             JSONObject response = new JSONObject();
             response.put("status", "fail");
-            response.put("message", "Invalid credentials");
+            
+            // Check if the error is due to suspension
+            if (e.getMessage() != null && e.getMessage().contains("suspended")) {
+                response.put("message", e.getMessage());
+            } else {
+                response.put("message", "Invalid credentials");
+            }
 
             send(exchange, 401, response);
         }

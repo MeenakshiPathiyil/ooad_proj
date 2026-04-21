@@ -35,8 +35,21 @@ public class Student extends User {
         this.reviews = new ArrayList<>(); // Start with no reviews
     }
 
+    // Constructor with suspension status (used when loading from database)
+    public Student(String id, String name, String email, String phone, String password, String department, boolean suspended) {
+
+        // Call the parent constructor to initialize common user properties
+        super(id, name, email, phone, password);
+
+        // Initialize student-specific properties
+        this.department = department;
+        this.suspended = suspended;
+        this.listedResources = new ArrayList<>(); // Start with no resources
+        this.reviews = new ArrayList<>(); // Start with no reviews
+    }
+
     @Override
-    // Validates login using the student's own state, following GRASP Information Expert.
+    // Validates login using the student's own state, following Information Expert.
     public boolean login(String password) {
         return !suspended && this.password.equals(password);
     }
@@ -86,7 +99,6 @@ public class Student extends User {
         json.put("phone", getPhone());
         json.put("department", getDepartment());
         json.put("suspended", isSuspended());
-        // Optionally add listed resources and reviews as arrays
         JSONArray resourcesArr = new JSONArray();
         for (Resource r : listedResources) {
             resourcesArr.put(r.toJson());

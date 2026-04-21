@@ -21,11 +21,13 @@ public class TransactionService {
     private final TransactionDAO transactionDAO;
     private final ResourceService resourceService;
     private final ReminderDbService reminderDbService;
+    private final StudentService studentService;
 
     public TransactionService() {
         this.transactionDAO = new TransactionDAOImpl();
         this.resourceService = new ResourceService();
         this.reminderDbService = new ReminderDbService();
+        this.studentService = new StudentService();
     }
 
     // 🔥 LEND / BORROW TRANSACTION
@@ -37,8 +39,17 @@ public class TransactionService {
 
         Resource resource = resourceService.getResourceById(resourceId);
 
-        Student lender = new Student(lenderId, "", "", "", "", "");
-        Student borrower = new Student(borrowerId, "", "", "", "", "");
+        // Load full student objects to check suspension status
+        Student lender = studentService.getStudentById(lenderId);
+        Student borrower = studentService.getStudentById(borrowerId);
+
+        // Validate that neither lender nor borrower is suspended
+        if (lender.isSuspended()) {
+            throw new IllegalStateException("Lender account is suspended and cannot lend items.");
+        }
+        if (borrower.isSuspended()) {
+            throw new IllegalStateException("Borrower account is suspended and cannot borrow items.");
+        }
 
         Transaction transaction = TransactionFactory.createTransaction(
                 "LENDBORROW",
@@ -80,8 +91,17 @@ public class TransactionService {
 
         Resource resource = resourceService.getResourceById(resourceId);
 
-        Student seller = new Student(sellerId, "", "", "", "", "");
-        Student buyer = new Student(buyerId, "", "", "", "", "");
+        // Load full student objects to check suspension status
+        Student seller = studentService.getStudentById(sellerId);
+        Student buyer = studentService.getStudentById(buyerId);
+
+        // Validate that neither seller nor buyer is suspended
+        if (seller.isSuspended()) {
+            throw new IllegalStateException("Seller account is suspended and cannot sell items.");
+        }
+        if (buyer.isSuspended()) {
+            throw new IllegalStateException("Buyer account is suspended and cannot buy items.");
+        }
 
         Transaction transaction = TransactionFactory.createTransaction(
                 "BUYSELL",

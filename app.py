@@ -803,16 +803,25 @@ def page_buysell():
         if df.empty:
             st.info("No items currently listed for sale.")
         else:
-            st.dataframe(df[['ResourceId', 'Title', 'ItemCondition', 'SellerName']], hide_index=True)
+            st.dataframe(df[['ResourceId', 'Title', 'ItemCondition', 'Price', 'SellerName']], hide_index=True)
             st.markdown("---")
             st.subheader("Initiate Purchase")
 
             with st.form("buysell_form"):
+<<<<<<< Updated upstream
                 resource_id = st.selectbox("Select Resource ID", df['ResourceId'].unique())
                 # Display seller's price as read-only information
                 selected_row = df[df['ResourceId'] == resource_id].iloc[0]
                 print(f"DEBUG: Selected Resource - {selected_row.to_dict()}")
                 st.info(f"**Seller's Asking Price:** ₹{selected_row['Price']:.2f}")
+=======
+                resource_id = st.selectbox(
+                    "Select Resource to Buy", 
+                    df['ResourceId'].unique(),
+                    format_func=lambda x: f"ID: {x} - {df[df['ResourceId'] == x]['Title'].iloc[0]}"
+                )
+                price       = st.number_input("Agreed Price (₹)", min_value=1.0, format="%.2f")
+>>>>>>> Stashed changes
                 submitted   = st.form_submit_button("Confirm Purchase", type="primary")
 
                 if submitted:

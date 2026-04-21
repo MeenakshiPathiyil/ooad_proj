@@ -36,12 +36,21 @@ public class StudentService {
         Optional<Student> studentOptional = studentDAO.findByEmail(email);
 
         if (studentOptional.isEmpty()) {
+            studentOptional = studentDAO.findById(email);
+        }
+
+        if (studentOptional.isEmpty()) {
             throw new IllegalArgumentException("Student not found.");
         }
 
         Student student = studentOptional.get();
 
-        if (!student.login(password)) {
+        // Check if student is suspended BEFORE checking password
+        if (student.isSuspended()) {
+            throw new IllegalArgumentException("Your account has been suspended. Please contact the administrator.");
+        }
+
+        if (!student.getPassword().equals(password)) {
             throw new IllegalArgumentException("Invalid password.");
         }
 
@@ -72,10 +81,5 @@ public class StudentService {
     // Sends student updates through the service layer to preserve separation of concerns.
     public void updateStudent(Student student) {
         studentDAO.update(student);
-    }
-
-    // Deletes a student through the DAO while keeping controllers free of persistence logic.
-    public void removeStudent(String studentId) {
-        studentDAO.delete(studentId);
     }
 }

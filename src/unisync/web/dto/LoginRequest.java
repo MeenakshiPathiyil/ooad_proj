@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotBlank;
 // LoginRequest carries validated login input, keeping transport data separate from domain models.
 public class LoginRequest {
     @NotBlank
-    @Email
     private String email;
 
     @NotBlank

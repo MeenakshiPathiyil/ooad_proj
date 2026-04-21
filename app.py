@@ -165,6 +165,100 @@ def save_uploaded_file(uploaded_file):
         st.error(f"File save error: {e}")
         return None
 
+def fetch_lendborrow_transactions(user_srn):
+    conn = get_db_connection()
+    if not conn:
+        return []
+
+    query = """
+        SELECT
+            t.TransactionId,
+            r.Title,
+            lender.Name AS Lender,
+            lender.SRN AS LenderId,
+            borrower.Name AS Borrower,
+            borrower.SRN AS BorrowerId,
+            l.StartDate,
+            l.EndDate,
+            l.Penalty,
+            t.Status,
+            r.ResourceId
+        FROM LendBorrowTransaction l
+        JOIN `Transaction` t ON l.TransactionId = t.TransactionId
+        JOIN Resource r ON l.ResourceId = r.ResourceId
+        JOIN Student lender ON l.LenderId = lender.SRN
+        JOIN Student borrower ON l.BorrowerId = borrower.SRN
+        WHERE l.LenderId = %s OR l.BorrowerId = %s
+        ORDER BY t.CreatedAt DESC
+    """
+
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(query, (user_srn, user_srn))
+        rows = cursor.fetchall()
+        return rows
+    except mysql.connector.Error as err:
+        st.error(f"Failed to fetch lend/borrow transactions: {err}")
+        return []
+    finally:
+        cursor.close()
+        conn.close()
+
+def return_borrowed_item(transaction_id, borrower_id):
+    conn = get_db_connection()
+    if not conn:
+        return False, "Database connection failed."
+
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute(
+            """
+            SELECT l.ResourceId, r.Title, l.EndDate, t.Status
+            FROM LendBorrowTransaction l
+            JOIN `Transaction` t ON l.TransactionId = t.TransactionId
+            JOIN Resource r ON r.ResourceId = l.ResourceId
+            WHERE l.TransactionId = %s AND l.BorrowerId = %s
+            FOR UPDATE
+            """,
+            (transaction_id, borrower_id)
+        )
+        loan = cursor.fetchone()
+
+        if not loan:
+            return False, "This borrowed item could not be found for your account."
+
+        if loan["Status"] != "PENDING":
+            return False, "This item has already been returned."
+
+        due_date = loan["EndDate"]
+        days_late = max((date.today() - due_date).days, 0)
+        penalty = float(days_late * 10.0)
+
+        cursor.execute(
+            "UPDATE LendBorrowTransaction SET Penalty = %s WHERE TransactionId = %s",
+            (penalty, transaction_id)
+        )
+        cursor.execute(
+            "UPDATE `Transaction` SET Status = 'COMPLETED' WHERE TransactionId = %s",
+            (transaction_id,)
+        )
+        cursor.execute(
+            "UPDATE Resource SET Status = 'AVAILABLE' WHERE ResourceId = %s",
+            (loan["ResourceId"],)
+        )
+        conn.commit()
+
+        if penalty > 0:
+            return True, f"Returned '{loan['Title']}'. Late penalty applied: Rs. {penalty:.2f}."
+        return True, f"Returned '{loan['Title']}' successfully."
+    except mysql.connector.Error as err:
+        conn.rollback()
+        return False, f"Return failed: {err}"
+    finally:
+        cursor.close()
+        conn.close()
+
 # ─── 0. Landing Page ──────────────────────────────────────────────────────────
 def page_landing():
     st.markdown('<p class="uni-title">Uni<span class="uni-accent">Sync</span></p>', unsafe_allow_html=True)
@@ -1034,56 +1128,68 @@ def page_lendborrow():
     # 🔥 TAB 2: RETURN
     # =========================
     with tab2:
-        st.subheader("Your Borrowed Items")
+        st.subheader("My Lend / Borrow Transactions")
 
-        try:
-            res = requests.get(f"{API_BASE}/transactions/{user_srn}")
+        transactions = fetch_lendborrow_transactions(user_srn)
 
-            if res.status_code != 200:
-                st.error("Failed to fetch transactions")
-                return
-
-            txns = res.json().get("data", [])
-
-        except Exception as e:
-            st.error(f"API Error: {e}")
+        if not transactions:
+            st.info("No lend/borrow transactions yet.")
             return
 
-        # filter only active borrow transactions
-        active_loans = [t for t in txns if t["type"] == "LENDBORROW" and t["status"] == "PENDING"]
+        display_rows = []
+        for txn in transactions:
+            days_late = max((date.today() - txn["EndDate"]).days, 0) if txn["Status"] == "PENDING" else 0
+            display_rows.append({
+                "TransactionId": txn["TransactionId"],
+                "Title": txn["Title"],
+                "Lender": txn["Lender"],
+                "Borrower": txn["Borrower"],
+                "StartDate": txn["StartDate"],
+                "EndDate": txn["EndDate"],
+                "Penalty": txn["Penalty"],
+                "Status": txn["Status"],
+                "DaysLate": days_late
+            })
 
-        if not active_loans:
-            st.info("No active borrowings.")
-            return
+        st.dataframe(pd.DataFrame(display_rows), hide_index=True)
 
-        df = pd.DataFrame(active_loans)
-        st.dataframe(df, hide_index=True)
+        my_active_borrows = [
+            txn for txn in transactions
+            if txn["BorrowerId"] == user_srn and txn["Status"] == "PENDING"
+        ]
 
         st.markdown("---")
-        st.subheader("Return an Item")
+        st.subheader("Return a Borrowed Item")
 
-        with st.form("return_form"):
-            txn_id = st.selectbox("Transaction ID", df["transactionId"])
+        if not my_active_borrows:
+            st.info("You do not have any active borrowed items to return.")
+            return
 
-            submitted = st.form_submit_button("Return Item", type="primary")
+        for txn in my_active_borrows:
+            due_date = txn["EndDate"]
+            days_late = max((date.today() - due_date).days, 0)
 
-            if submitted:
-                try:
-                    res = requests.post(
-                        f"{API_BASE}/return",
-                        json={
-                            "transactionId": int(txn_id)
-                        }
+            with st.container(border=True):
+                col1, col2 = st.columns([3, 1])
+
+                with col1:
+                    st.markdown(f"**{txn['Title']}**")
+                    st.caption(
+                        f"Transaction #{txn['TransactionId']} | Lender: {txn['Lender']} | "
+                        f"Due: {due_date} | Days late: {days_late}"
                     )
 
-                    if res.status_code == 200:
-                        st.success("Item returned successfully ✅")
-                        st.rerun()
-                    else:
-                        st.error("Return failed")
-
-                except Exception as e:
-                    st.error(f"API Error: {e}")
+                with col2:
+                    if st.button("Return Item", key=f"return_{txn['TransactionId']}", type="primary"):
+                        ok, message = return_borrowed_item(txn["TransactionId"], user_srn)
+                        if ok:
+                            if days_late > 0:
+                                st.warning(message)
+                            else:
+                                st.success(message)
+                            st.rerun()
+                        else:
+                            st.error(message)
     
 
 # ─── 7. Barter Page ───────────────────────────────────────────────────────────
@@ -1373,6 +1479,51 @@ def page_my_activity():
             ORDER BY t.CreatedAt DESC
         """, conn, params=(user_srn, user_srn))
         st.dataframe(df_loans if not df_loans.empty else pd.DataFrame({"Message": ["No loan transactions."]}), hide_index=True)
+
+        if not df_loans.empty:
+            borrower_rows = pd.read_sql("""
+                SELECT t.TransactionId, r.Title, lender.Name AS Lender, l.EndDate, t.Status
+                FROM LendBorrowTransaction l
+                JOIN `Transaction` t ON l.TransactionId = t.TransactionId
+                JOIN Resource r ON l.ResourceId = r.ResourceId
+                JOIN Student lender ON l.LenderId = lender.SRN
+                WHERE l.BorrowerId = %s
+                ORDER BY t.CreatedAt DESC
+            """, conn, params=(user_srn,))
+
+            active_borrowed = borrower_rows[borrower_rows["Status"] == "PENDING"] if not borrower_rows.empty else pd.DataFrame()
+
+            st.markdown("---")
+            st.subheader("Return a Borrowed Item")
+
+            if active_borrowed.empty:
+                st.info("You do not have any active borrowed items to return.")
+            else:
+                for _, txn in active_borrowed.iterrows():
+                    due_date = txn["EndDate"]
+                    days_late = max((date.today() - due_date).days, 0)
+
+                    with st.container(border=True):
+                        col1, col2 = st.columns([3, 1])
+
+                        with col1:
+                            st.markdown(f"**{txn['Title']}**")
+                            st.caption(
+                                f"Transaction #{int(txn['TransactionId'])} | Lender: {txn['Lender']} | "
+                                f"Due: {due_date} | Days late: {days_late}"
+                            )
+
+                        with col2:
+                            if st.button("Return Item", key=f"activity_return_{int(txn['TransactionId'])}", type="primary"):
+                                ok, message = return_borrowed_item(int(txn["TransactionId"]), user_srn)
+                                if ok:
+                                    if days_late > 0:
+                                        st.warning(message)
+                                    else:
+                                        st.success(message)
+                                    st.rerun()
+                                else:
+                                    st.error(message)
 
     # ── Tab 4: Reviews & Reminders
     with tab4:
